@@ -12,6 +12,7 @@ public class TeacherServiceImpl implements TeacherServiceInterface {
 
     //YOUR CODE STARTS HERE
 
+    //Depends on the Teacher Dao interface, for testing purposes
     private final TeacherDao teacherDao;
 
     @Autowired
@@ -49,6 +50,7 @@ public class TeacherServiceImpl implements TeacherServiceInterface {
     public Teacher addNewTeacher(Teacher teacher) {
         //YOUR CODE STARTS HERE
 
+        //Checks for blanks or nulls
         if(teacher.getTeacherFName() == null || teacher.getTeacherFName().isBlank() || teacher.getTeacherLName() == null || teacher.getTeacherLName().isBlank()){
             teacher.setTeacherFName("First Name blank, teacher NOT added");
             teacher.setTeacherLName("Last Name blank, teacher NOT added");

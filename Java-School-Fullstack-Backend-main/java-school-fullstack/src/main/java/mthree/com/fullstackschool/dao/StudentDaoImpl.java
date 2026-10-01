@@ -28,9 +28,18 @@ public class StudentDaoImpl implements StudentDao {
     public Student createNewStudent(Student student) {
         //YOUR CODE STARTS HERE
 
+        final String sql = "INSERT INTO student (fname, lname) VALUES (?,?);";
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
-        return null;
+        jdbcTemplate.update((Connection connection) ->{
+            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, student.getStudentFirstName());
+            statement.setString(2, student.getStudentLastName());
+            return statement;
+        }, keyHolder );
 
+        student.setStudentId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        return student;
 
         //YOUR CODE ENDS HERE
     }
@@ -39,8 +48,9 @@ public class StudentDaoImpl implements StudentDao {
     public List<Student> getAllStudents() {
         //YOUR CODE STARTS HERE
 
-
-        return null;
+        //Converts each row into a student object
+        final String sql = "SELECT * FROM student";
+        return jdbcTemplate.query(sql, new StudentMapper());
 
         //YOUR CODE ENDS HERE
     }
@@ -49,7 +59,8 @@ public class StudentDaoImpl implements StudentDao {
     public Student findStudentById(int id) {
         //YOUR CODE STARTS HERE
 
-        return null;
+        final String sql = "SELECT * FROM student WHERE sid = ?;";
+        return jdbcTemplate.queryForObject(sql, new StudentMapper(), id);
 
         //YOUR CODE ENDS HERE
     }
@@ -58,6 +69,12 @@ public class StudentDaoImpl implements StudentDao {
     public void updateStudent(Student student) {
         //YOUR CODE STARTS HERE
 
+        //? are placeholders and are filled in order
+        final String sql = "UPDATE student SET fName = ?, lName = ? WHERE sid = ?;";
+        jdbcTemplate.update(sql,
+                student.getStudentFirstName(),
+                student.getStudentLastName(),
+                student.getStudentId());
 
         //YOUR CODE ENDS HERE
     }
@@ -66,6 +83,9 @@ public class StudentDaoImpl implements StudentDao {
     public void deleteStudent(int id) {
         //YOUR CODE STARTS HERE
 
+        //Remove the students first, then the student
+        jdbcTemplate.update("DELETE FROM course_student WHERE student_id = ?", id);
+        jdbcTemplate.update("DELETE FROM student WHERE sid = ?", id);
 
         //YOUR CODE ENDS HERE
     }
@@ -74,8 +94,18 @@ public class StudentDaoImpl implements StudentDao {
     public void addStudentToCourse(int studentId, int courseId) {
         //YOUR CODE STARTS HERE
 
+        // course_student has no primary key, so check for an existing enrollment
+        final String checkSql = "SELECT COUNT(*) FROM course_student WHERE student_id = ? AND course_id = ?;";
+        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, studentId, courseId);
 
+        if(count != null && count > 0){
+            throw new org.springframework.dao.DuplicateKeyException(
+                    "Student " + studentId + " already enrolled in this course " + courseId
+            );
+        }
 
+        jdbcTemplate.update("INSERT INTO course_student (student_id, course_id) VALUES (?, ?)",
+                studentId, courseId);
         //YOUR CODE ENDS HERE
     }
 
@@ -83,7 +113,9 @@ public class StudentDaoImpl implements StudentDao {
     public void deleteStudentFromCourse(int studentId, int courseId) {
         //YOUR CODE STARTS HERE
 
-
+        //Removes one enrollment only
+        jdbcTemplate.update("DELETE FROM course_student WHERE student_id = ? AND course_id = ?",
+                studentId, courseId);
 
         //YOUR CODE ENDS HERE
     }

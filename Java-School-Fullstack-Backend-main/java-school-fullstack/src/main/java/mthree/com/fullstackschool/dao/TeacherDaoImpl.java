@@ -35,6 +35,7 @@ public class TeacherDaoImpl implements TeacherDao {
             return statement;
         }, keyHolder);
 
+        //Puts the Id on the object so the call gets a completed teacher
         teacher.setTeacherId(keyHolder.getKey().intValue());
         return teacher;
         //YOUR CODE ENDS HERE
@@ -44,6 +45,7 @@ public class TeacherDaoImpl implements TeacherDao {
     public List<Teacher> getAllTeachers() {
         //YOUR CODE STARTS HERE
 
+        //Converts each row into a teacher object
         final String sql = "SELECT * FROM teacher;";
         return jdbcTemplate.query(sql, new TeacherMapper());
 
@@ -64,6 +66,7 @@ public class TeacherDaoImpl implements TeacherDao {
     public void updateTeacher(Teacher t) {
         //YOUR CODE STARTS HERE
 
+        //? are placeholders and are filled in order
         final String sql = "UPDATE teacher SET tFName = ?, tLName = ?, dept = ? WHERE tid = ?;";
         jdbcTemplate.update(sql,
                 t.getTeacherFName(),
